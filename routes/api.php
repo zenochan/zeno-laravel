@@ -21,6 +21,7 @@ Route::group(["middleware" => "api"], function () {
   Route::post("blogs", "MDBlogController@postMDBlog")->name("新增日志");
   Route::patch("blogs/{id}", "MDBlogController@patchBlog")->name("更新日志");
   Route::delete("blogs/{id}/{pwd}", "MDBlogController@deleteMDBlog")->name("删除日志");
+  Route::post("crash", "MDBlogController@createBlogFromCrash")->name("记录崩溃日志");
 
   Route::post("blogs/{blogId}/tags/{tag}", "TagController@addTag")->name("添加标签");
   Route::delete("blogs/{blogId}/tags/{tagId}", "TagController@removeTag")->name("删除标签");

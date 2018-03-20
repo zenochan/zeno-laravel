@@ -7,7 +7,7 @@ use App\Entity\Result;
 
 class TagController extends Controller
 {
-  function addTag($blogId, $tag)
+  public function addTag($blogId, $tag)
   {
     $tagObj = Tag::where("tag", "=", $tag)->first();
     if (!$tagObj) {
@@ -32,7 +32,9 @@ class TagController extends Controller
   function tags()
   {
     $tags = Tag::leftJoin("t_tag_blog", "t_tag.id", "=", "t_tag_blog.tag_id")
+      ->leftJoin("t_md_blog", "t_md_blog.id", "=", "t_tag_blog.blog_id")
       ->selectRaw("t_tag.*,count(t_tag_blog.id) as count")
+      ->whereNull("t_md_blog.deleted_at")
       ->groupBy("t_tag.id")
       ->orderBy("count", 'desc')
       ->get()

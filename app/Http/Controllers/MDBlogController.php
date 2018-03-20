@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Entity\MDBlog;
 use App\Entity\Result;
 use Illuminate\Http\Request;
+use function MongoDB\BSON\toJSON;
 
 class MDBlogController extends Controller
 {
@@ -38,6 +39,11 @@ class MDBlogController extends Controller
       $build->whereHas("tags", function ($query) {
         $query->where("tag", "=", $this->tag);
       });
+    }else{
+      $build->whereDoesntHave("tags", function ($query) {
+        $query->where("tag", "=", "Crash");
+      });
+
     }
     $build->with("tags");
 
@@ -65,6 +71,48 @@ class MDBlogController extends Controller
     $blog->saveOrFail();
 
     return Result::successSingle($blog);
+  }
+
+  // App 异常上报 + Crash tag
+  public function createBlogFromCrash(Request $request)
+  {
+    $param = json_decode($request->getContent());
+    $blogContent =
+      "#### 应用\n"
+      . "> \n"
+      . "__名称__:$param->appName($param->packageName)  \n"
+      . "__版本__:$param->versionName(build $param->versionCode)\n\n"
+
+      . "#### 设备\n"
+      . "> \n"
+      . "__IMEI__: " . @$param->imei . "  \n"
+      . "__手机__: " . @$param->phoneNumber . "  \n"
+      . "__厂商__: $param->manufacturer  \n"
+      . "__型号__: $param->mode  \n"
+      . "__版本__: $param->version($param->sdkInt)\n\n"
+
+      . "#### 异常\n"
+      . "> \n"
+      . "__类型__: $param->type  \n"
+      . "__信息__: $param->message  \n"
+      . "__时间__: $param->time  \n"
+      . "```\n$param->stack\n\n```"
+
+      . "#### 用户\n"
+      . "```json\n"
+      . json_encode(@$param->account, 384)
+      . "\n```\n\n";
+
+
+    $blog = new MDBlog();
+    $blog->blog = $blogContent;
+    $blog->user_id = 1;
+    $blog->saveOrFail();
+
+    $tagCtr = new TagController();
+    $tagCtr->addTag($blog->id, "Crash");
+
+    return $blog;
   }
 
   public function getMDBlogById($id)

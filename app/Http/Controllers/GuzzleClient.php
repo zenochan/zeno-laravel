@@ -35,7 +35,10 @@ class GuzzleClient
 
   }
 
-  private static function client(): Client
+  /**
+   * @return Client
+   */
+  public static function client()
   {
     if (self::$client == null) {
       self::$client = new Client();

@@ -11,13 +11,28 @@
 |
 */
 
+
+use app\Http\Controllers\GuzzleClient;
+
 Route::get('/', function () {
-  return view('welcome');
+  preg_match_all("/满(\d+)减(\d+)元/", "满3000减100元,满4000减220元", $matchs);
+  $r = [];
+
+  for ($i = 0; $i < count($matchs[0]); $i++) {
+    $r[$i] = ["mian" => $matchs[1][$i], "jian" => $matchs[2][$i]];
+  }
+  dump($r);
 });
 
 Route::get("/info", function () {
   return view('info');
 })->name("php 版本");
+
+Route::get("/bd", function () {
+  $url = 'http://api.map.baidu.com/direction/v2/riding?origin=40.01116,116.339303&destination=39.936404,116.452562&ak=8aPsM6Ff2Wr54IqSe6Vme2T9OiU549hG';
+  return json_encode(GuzzleClient::get($url), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+})->name("百度路线");
+
 
 Route::get("/wiki", function () {
   return view("wiki.apidoc");
